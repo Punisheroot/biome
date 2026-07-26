@@ -4,7 +4,7 @@ use crate::utils::{FormatMultilineKeyEntry, multiline_plain_key, needs_space_bef
 use biome_formatter::{format_args, write};
 use biome_rowan::AstNode;
 use biome_yaml_syntax::{
-    AnyYamlFlowNode, AnyYamlMappingImplicitKey, YamlFlowMapImplicitEntry,
+    AnyYamlEntryValue, AnyYamlFlowNode, AnyYamlMappingImplicitKey, YamlFlowMapImplicitEntry,
     YamlFlowMapImplicitEntryFields, YamlSyntaxKind, YamlSyntaxToken,
 };
 #[derive(Debug, Clone, Default)]
@@ -52,8 +52,7 @@ impl FormatNodeRule<YamlFlowMapImplicitEntry> for FormatYamlFlowMapImplicitEntry
                 [FormatCollectionKeyEntry {
                     key: entry_key,
                     colon_token,
-                    value: &entry_value.format(),
-                    value_has_comments: subtree_has_comments(f.comments(), entry_value.syntax()),
+                    value: entry_value.clone().into(),
                 }]
             );
         }
@@ -87,23 +86,24 @@ impl FormatNodeRule<YamlFlowMapImplicitEntry> for FormatYamlFlowMapImplicitEntry
 /// of its own, and conditional content on that group picks between the
 /// implicit and the explicit form. A comment inside the key expands the
 /// group, so it picks the explicit form as well.
-pub(crate) struct FormatCollectionKeyEntry<'a, V> {
+pub(crate) struct FormatCollectionKeyEntry<'a> {
     pub(crate) key: &'a AnyYamlMappingImplicitKey,
     pub(crate) colon_token: &'a YamlSyntaxToken,
-    pub(crate) value: &'a V,
-    /// Whether a comment inside the value forces it to break
-    pub(crate) value_has_comments: bool,
+    pub(crate) value: AnyYamlEntryValue,
 }
 
-impl<V> Format<YamlFormatContext> for FormatCollectionKeyEntry<'_, V>
-where
-    V: Format<YamlFormatContext>,
-{
+impl Format<YamlFormatContext> for FormatCollectionKeyEntry<'_> {
     fn fmt(&self, f: &mut YamlFormatter) -> FormatResult<()> {
         let group_id = f.group_id("collection_key");
         let key_format = self.key.format().memoized();
         let colon_format = self.colon_token.format().memoized();
-        let value_format = self.value.memoized();
+        let value_format = format_with(|f| match &self.value {
+            AnyYamlEntryValue::AnyYamlFlowNode(value) => write!(f, [value.format()]),
+            AnyYamlEntryValue::AnyYamlBlockNode(value) => write!(f, [value.format()]),
+        })
+        .memoized();
+        // A comment inside the value forces it to break
+        let value_has_comments = subtree_has_comments(f.comments(), self.value.syntax());
 
         write!(
             f,
@@ -126,7 +126,7 @@ where
                 .with_group_id(Some(group_id)),
                 if_group_fits_on_line(&format_with(|f| {
                     write!(f, [colon_format])?;
-                    if self.value_has_comments {
+                    if value_has_comments {
                         // A value that a comment forces to break stays on the
                         // key's line instead of moving to its own line:
                         //
