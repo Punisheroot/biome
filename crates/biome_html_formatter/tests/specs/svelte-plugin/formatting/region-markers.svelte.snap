@@ -35,9 +35,7 @@ info: formatting/region-markers.svelte
 -
 -<!-- #region STYLES -->
 -<style></style>
--<!-- #endregion -->
-+<!-- #endregion -->
-\ No newline at end of file
+ <!-- #endregion -->
 ```
 
 # Output
@@ -50,4 +48,5 @@ info: formatting/region-markers.svelte
 <!-- #region MARKUP -->
 <body></body>
 
-<!-- #endregion -->```
+<!-- #endregion -->
+```

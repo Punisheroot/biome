@@ -1,0 +1,33 @@
+---
+source: crates/biome_formatter_test/src/snapshot_builder.rs
+info: trailing_newline/ends-with-comment.html
+---
+
+# Input
+
+```html
+<div></div>
+<!-- the last thing in the document -->
+
+```
+
+
+# Options
+
+```json
+{
+  "$schema": "../../../../../../packages/@biomejs/biome/configuration_schema.json",
+  "html": {
+    "formatter": {
+      "trailingNewline": false
+    }
+  }
+}
+```
+
+# Formatted
+
+```html
+<div></div>
+<!-- the last thing in the document -->
+```
