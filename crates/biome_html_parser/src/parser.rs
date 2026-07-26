@@ -35,7 +35,9 @@ impl<'source> HtmlParser<'source> {
     pub fn new(source: &'source str, options: HtmlParserOptions) -> Self {
         Self {
             context: ParserContext::default(),
-            source: HtmlTokenSource::from_str(source),
+            // Svelte reads `{{a: true}}` as one expression holding an object
+            // literal, so `{{` must not open an interpolation there.
+            source: HtmlTokenSource::from_str(source, !options.svelte),
             source_text: source,
             options,
             at_vue_sfc_top_level: false,
