@@ -1,5 +1,68 @@
 # @biomejs/biome
 
+## 2.5.7
+
+### Patch Changes
+
+- [#10822](https://github.com/biomejs/biome/pull/10822) [`c171b3b`](https://github.com/biomejs/biome/commit/c171b3bd513d49c35b66cdc74a5de0ca0766b6ef) Thanks [@pkallos](https://github.com/pkallos)! - Added the option `ignoreIfStatements` to [useNullishCoalescing](https://biomejs.dev/linter/rules/use-nullish-coalescing/). Biome now flags `if` statements that only assign to a nullish variable (such as `if (!a) { a = b }`) and can rewrite them to `??=`. When enabled, Biome ignores those `if` statements.
+
+- [#8239](https://github.com/biomejs/biome/pull/8239) [`a519f9d`](https://github.com/biomejs/biome/commit/a519f9d19e56015ec906efac4629fbb15708f5e2) Thanks [@cormacrelf](https://github.com/cormacrelf)! - Fixed [#8233](https://github.com/biomejs/biome/issues/8233), where Biome CLI in
+  stdin mode didn't work correctly when handling files in projects with nested
+  configurations. For example, with the following structure,
+  `--stdin-file-path=subdirectory/...` would not use the nested configuration in
+  `subdirectory/biome.json`:
+
+  ```
+  ├── biome.json
+  └── subdirectory
+      ├── biome.json
+      └── lib.js
+  ```
+
+  ```shell
+  biome format --write --stdin-file-path=subdirectory/lib.js < subdirectory/lib.js
+  ```
+
+  Now, the nested configuration is correctly picked up and applied.
+
+  In addition, Biome now shows a warning if `--stdin-file-path` is provided but
+  that path is ignored and therefore not formatted or fixed.
+
+- [#11118](https://github.com/biomejs/biome/pull/11118) [`9c16840`](https://github.com/biomejs/biome/commit/9c16840801a806ba34fbba7da28b9724d250207a) Thanks [@subotac](https://github.com/subotac)! - Fixed [#11098](https://github.com/biomejs/biome/issues/11098): The HTML formatter now preserves the configured trailing newline when a file ends with a comment.
+
+  ```diff
+  -<!-- trailing comment -->
+  \ No newline at end of file
+  +<!-- trailing comment -->
+  ```
+
+- [#11113](https://github.com/biomejs/biome/pull/11113) [`3d8ab73`](https://github.com/biomejs/biome/commit/3d8ab73619f1c62a2d544d41ffee16eab9307d51) Thanks [@denbezrukov](https://github.com/denbezrukov)! - Fixed CSS formatting of long block comments between comma-separated property values:
+
+  ```diff
+   .foo {
+     box-shadow:
+  -    1000px /* long long long long long long long long long long long long comment */ 1000px /* long long long long long long long long long comment */ 2px color(srgb 0.555555555 0.555555555 0.555555555),
+  +    1000px
+  +      /* long long long long long long long long long long long long comment */
+  +      1000px /* long long long long long long long long long comment */ 2px
+  +      color(srgb 0.555555555 0.555555555 0.555555555),
+       1px 1px black;
+   }
+  ```
+
+- [#11077](https://github.com/biomejs/biome/pull/11077) [`4dcd0d9`](https://github.com/biomejs/biome/commit/4dcd0d99579650191696dc5fb8b16dd69d65c4ee) Thanks [@dyc3](https://github.com/dyc3)! - Fixed a bug where the HTML formatter collapsed the whitespace inside `<textarea>`, `<xmp>` and `<plaintext>`, changing what the page renders.
+
+  ```diff
+  - <textarea>
+  -  line one
+  - line two </textarea>
+  + <textarea>line one line two</textarea>
+  ```
+
+  Biome now prints the content of these elements exactly as it appears in the source, matching the existing behavior for `<pre>`.
+
+- [#11117](https://github.com/biomejs/biome/pull/11117) [`01f7ef5`](https://github.com/biomejs/biome/commit/01f7ef58d4c19a587b01754c96b577a2a5a47418) Thanks [@subotac](https://github.com/subotac)! - Fixed [#11014](https://github.com/biomejs/biome/issues/11014): [`noDelete`](https://biomejs.dev/linter/rules/no-delete/) no longer reports `process.env["FOO"]` style property deletions.
+
 ## 2.5.6
 
 ### Patch Changes
